@@ -1,0 +1,145 @@
+<!-- index.html -->
+<html>
+
+<head>
+    <title>Video Streaming Demonstration</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#loading").hide();
+
+
+            $("#camSwitch").change(function () {
+                $("#camSwitch").attr("class","checkbox disabled");
+                if (this.checked) {
+                    $.get("/conf_openCam", function (data, status) {
+                        $("#camSwitch").attr("class","checkbox");
+                    });
+                    $("#bg").attr("style","");
+                }else{
+                    $.get("/conf_closeCam", function (data, status) {
+                        $("#camSwitch").attr("class","checkbox")
+                    });
+                    $("#bg").attr("style","-webkit-filter:grayscale(1);");
+                }
+            });
+
+            $("#trackSwitch").change(function () {
+                $("#trackSwitch").attr("class","checkbox disabled");
+                if (this.checked) {
+                    $.get("/conf_openTrack", function (data, status) {
+                        $("#trackSwitch").attr("class","checkbox");
+                    });
+                }else{
+                    $.get("/conf_closeTrack", function (data, status) {
+                        $("#trackSwitch").attr("class","checkbox");
+                    });
+                }
+            });
+
+            $("#rBtn").click(function () {
+                $('#loading').show();
+                $.ajax({
+                    type: "POST",
+                    cache: false,
+                    url: "7688網址:5000/api/action",
+                    data: {
+                        value: "pull"
+                    },
+                    dataType: 'json',
+                    success: function (res) {
+                        moveBar(res)
+                    }, error: function () {
+                        alert("Connection error...");
+                        $('#loading').hide();
+                    }
+                });
+            });
+            $("#lBtn").click(function () {
+                $('#loading').show();
+                $.ajax({
+                    type: "POST",
+                    cache: false,
+                    url: "7688網址:5000/api/action",
+                    data: {
+                        value: "push"
+                    },
+                    dataType: 'json',
+                    success: function (res) {
+                        moveBar(res)
+                    }, error: function () {
+                        alert("Connection error...");
+                        $('#loading').hide();
+                    }
+                });
+            });
+
+        });
+
+        function moveBar(result) {
+            $('#loading').hide();
+            if (result.status != 200) {
+                alert(result.result);
+            }
+            if (result.pos <= 0 || result.pos > 5) {
+                return false
+            }
+            posNow = 6 - result.pos;
+            $("#progressBar").text("Position：" + posNow.toString());
+            $("#progressBar").attr({
+                "aria-valuenow": posNow.toString(),
+                "style": "width:" + (posNow * 20).toString() + "%"
+            });
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Video Streaming Demonstration</h1>
+
+        <div class="row">
+            <div class="col">
+                <img id="bg" class="rounded" src="{{ url_for('video_feed') }}">
+            </div>
+            <div class="col">
+                <div id="loading" class="spinner-border text-warning" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+
+                <button type="button" id="lBtn" class="btn btn-outline-info"><i class="fa fa-arrow-left"
+                        aria-hidden="true"></i>Left</button>
+                <button type="button" id="rBtn" class="btn btn-outline-success"><i class="fa fa-arrow-right"
+                        aria-hidden="true"></i>Right</button>
+
+                </br></br>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar progress-bar-striped bg-info" role="progressbar"
+                        style="{{ barSty }}" aria-valuenow="1" aria-valuemin="1" aria-valuemax="5">Position：{{ pos }}
+                    </div>
+                </div>
+
+                <br>
+
+                <input id="camSwitch" type="checkbox" checked data-toggle="toggle" data-onstyle="success"
+                    data-offstyle="danger" data-on="<i class='fa fa-video-camera'></i> ON"
+                    data-off="<i class='fa fa-video-camera'></i> OFF" data-width="120">
+                <input id="trackSwitch" type="checkbox" data-toggle="toggle"
+                    data-on="<i class='fa fa-user-circle-o'></i> Start tracking"
+                    data-off="<i class='fa fa-user-circle-o'></i> Stop tracking" data-width="200" data-height="38">
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
